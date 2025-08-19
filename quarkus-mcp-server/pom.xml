@@ -18,6 +18,9 @@
     <mcp.quarkiverse.version>1.4.1</mcp.quarkiverse.version>
     <jandex.version>3.3.0</jandex.version>
     <quarkus.package.jar.type>uber-jar</quarkus.package.jar.type>
+    <!-- Default values for non-debug builds -->
+    <host.file>host.json</host.file>
+    <include.local.settings>false</include.local.settings>
   </properties>
 
   <dependencyManagement>
@@ -122,8 +125,6 @@
                   <directory>${project.basedir}</directory>
                   <includes>
                     <include>mcp-handler/**</include>
-                    <include>host.json</include>
-                    <include>local.settings.json</include>
                   </includes>
                   <filtering>false</filtering>
                 </resource>
@@ -151,6 +152,27 @@
           </execution>
         </executions>
       </plugin>
+      <!-- Copy and rename host file using AntRun plugin -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>copy-host-file</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <copy file="${project.basedir}/${host.file}" 
+                      tofile="${project.build.directory}/azure-function/host.json" />
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
@@ -160,6 +182,42 @@
       <properties>
         <quarkus.package.type>native</quarkus.package.type>
       </properties>
+    </profile>
+    <profile>
+      <id>debug</id>
+      <properties>
+        <host.file>host.debug.json</host.file>
+        <include.local.settings>true</include.local.settings>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-resources-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>copy-local-settings</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>copy-resources</goal>
+                </goals>
+                <configuration>
+                  <outputDirectory>${project.build.directory}/azure-function</outputDirectory>
+                  <resources>
+                    <resource>
+                      <directory>${project.basedir}</directory>
+                      <includes>
+                        <include>local.settings.json</include>
+                      </includes>
+                      <filtering>false</filtering>
+                    </resource>
+                  </resources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
 </project>
