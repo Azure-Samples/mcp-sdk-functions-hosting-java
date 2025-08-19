@@ -1,0 +1,8 @@
+{
+  "azureFunctions.javaBuildTool": "maven",
+  "azureFunctions.deploySubpath": "quarkus-mcp-server/target/azure-function",
+  "azureFunctions.projectLanguage": "Java",
+  "azureFunctions.projectRuntime": "~4",
+  "debug.internalConsoleOptions": "neverOpen",
+  "azureFunctions.preDeployTask": "package (functions)"
+}
