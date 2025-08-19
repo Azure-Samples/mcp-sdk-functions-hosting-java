@@ -55,19 +55,19 @@ The `.vscode/mcp.json` file configures VS Code to connect to the weather server:
 
 ```json
 {
-  "servers": {
-    "weather-server": {
-      "url": "http://localhost:8080/sse",
-      "type": "sse"
-    }
-  },
-  "inputs": []
+	"servers": {
+		"weather-server": {
+			"url": "http://localhost:8080/mcp",
+			"type": "http"
+		}
+	},
+	"inputs": []
 }
 ```
 
 ### Server Endpoints
 
-- **SSE Endpoint**: `http://localhost:8080/sse`
+- **SSE Endpoint**: `http://localhost:8080/mcp`
 - **Message Endpoint**: `http://localhost:8080/message`
 
 ### Using the Tools
