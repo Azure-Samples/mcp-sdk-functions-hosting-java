@@ -1,0 +1,15 @@
+{
+  "version": "2.0",
+  "customHandler": {
+    "description": {
+      "defaultExecutablePath": "run.sh"
+    },
+    "enableForwardingHttpRequest": true,
+    "enableHttpProxyingRequest": true
+  },
+  "extensions": {
+    "http": {
+      "routePrefix": ""
+    }
+  }
+}

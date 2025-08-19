@@ -1,57 +1,92 @@
-# Project Name
+# MCP Weather Server - Java Implementation
 
-(short, 1-3 sentenced, description of the project)
+A Java implementation of an MCP (Model Context Protocol) Weather Server using the official Java MCP SDK and Spring Boot. This server provides weather alerts and forecasts through the Model Context Protocol, making it compatible with VS Code and other MCP clients.
 
-## Features
+## 🌟 Features
 
-This project framework provides the following features:
+This MCP weather server provides two tools accessible through the Model Context Protocol:
 
-* Feature 1
-* Feature 2
-* ...
+1. **get_alerts(state)**: Get active weather alerts for a US state
+   - Parameters: `state` (string) - Two-letter US state code (e.g., "CA", "NY")
+   - Returns: Formatted weather alert information including event type, area, severity, description, and instructions
 
-## Getting Started
+2. **get_forecast(latitude, longitude)**: Get weather forecast for a location
+   - Parameters:
+     - `latitude` (double) - Latitude of the location (-90 to 90)
+     - `longitude` (double) - Longitude of the location (-180 to 180)
+   - Returns: Weather forecast with temperature, wind, and detailed conditions
 
-### Prerequisites
+## 🏗️ Implementation
 
-(ideally very short, if any)
+### Core Components
 
-- OS
-- Library version
-- ...
+- **WeatherServer.java**: MCP server implementation using the official Java MCP SDK
+- **WeatherService.java**: Weather data service with National Weather Service API integration
+- **WeatherServerApplication.java**: Spring Boot application with HTTP SSE transport
+- **application.yml**: Logging configuration
+- **.vscode/mcp.json**: VS Code MCP client configuration
 
-### Installation
+### Dependencies
 
-(ideally very short)
+- Java 17
+- Spring Boot 3.2.1
+- Jackson Data bind for JSON processing
+- MCP Java SDK (v0.11.0)
 
-- npm install [package name]
-- mvn install
-- ...
+## 🚀 Usage
 
-### Quickstart
-(Add steps to get up and running quickly)
+### Running the Server
 
-1. git clone [repository clone url]
-2. cd [repository name]
-3. ...
+```bash
+# Run with Spring Boot (recommended for development)
+mvn spring-boot:run
 
+# Alternative using exec plugin
+mvn exec:java
 
-## Demo
+# Build and run as executable jar
+mvn clean package -DskipTests
+java -jar target/mcp-1.0.jar
+```
 
-A demo app is included to show how to use the project.
+### VS Code MCP Client Configuration
 
-To run the demo, follow these steps:
+The `.vscode/mcp.json` file configures VS Code to connect to the weather server:
 
-(Add steps to start up the demo)
+```json
+{
+  "servers": {
+    "weather-server": {
+      "url": "http://localhost:8080/sse",
+      "type": "sse"
+    }
+  },
+  "inputs": []
+}
+```
 
-1.
-2.
-3.
+### Server Endpoints
 
-## Resources
+- **SSE Endpoint**: `http://localhost:8080/sse`
+- **Message Endpoint**: `http://localhost:8080/message`
 
-(Any additional resources or related projects)
+### Using the Tools
 
-- Link to supporting information
-- Link to similar sample
-- ...
+Once connected through VS Code MCP client:
+
+```text
+# Get weather alerts for a state
+get_alerts(state="CA")
+
+# Get weather forecast for coordinates
+get_forecast(latitude=37.7749, longitude=-122.4194)  # San Francisco
+```
+
+## 🛡️ National Weather Service API
+
+This implementation uses the official NWS API:
+
+- Base URL: `https://api.weather.gov`
+- Alerts endpoint: `/alerts/active/area/{state}`
+- Points endpoint: `/points/{lat},{lon}`
+- Forecast endpoint: Retrieved from points response
