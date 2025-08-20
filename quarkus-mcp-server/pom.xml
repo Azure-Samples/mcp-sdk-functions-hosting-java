@@ -18,6 +18,8 @@
     <mcp.quarkiverse.version>1.4.1</mcp.quarkiverse.version>
     <jandex.version>3.3.0</jandex.version>
     <quarkus.package.jar.type>uber-jar</quarkus.package.jar.type>
+    <!-- JAR name for consistent reference -->
+    <runner.jar.name>${project.artifactId}-${project.version}-runner.jar</runner.jar.name>
     <!-- Default values for non-debug builds -->
     <host.file>host.json</host.file>
     <include.local.settings>false</include.local.settings>
@@ -100,8 +102,6 @@
         <version>3.11.0</version>
         <configuration>
           <release>${maven.compiler.release}</release>
-          <debug>true</debug>
-          <debuglevel>lines,vars,source</debuglevel>
         </configuration>
       </plugin>
       <!-- Copy the Quarkus uber-jar (runner jar) into target/azure-function -->
@@ -143,7 +143,7 @@
                 <resource>
                   <directory>${project.build.directory}</directory>
                   <includes>
-                    <include>*-runner.jar</include>
+                    <include>${runner.jar.name}</include>
                   </includes>
                   <filtering>false</filtering>
                 </resource>
@@ -166,8 +166,13 @@
             </goals>
             <configuration>
               <target>
+                <!-- Use filterset to replace Maven properties in host file -->
                 <copy file="${project.basedir}/${host.file}" 
-                      tofile="${project.build.directory}/azure-function/host.json" />
+                      tofile="${project.build.directory}/azure-function/host.json">
+                  <filterset>
+                    <filter token="runner.jar.name" value="${runner.jar.name}"/>
+                  </filterset>
+                </copy>
               </target>
             </configuration>
           </execution>
@@ -191,6 +196,16 @@
       </properties>
       <build>
         <plugins>
+          <!-- Enable debug symbols in debug profile -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <debug>true</debug>
+              <debuglevel>lines,vars,source</debuglevel>
+              <parameters>true</parameters>
+            </configuration>
+          </plugin>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-resources-plugin</artifactId>

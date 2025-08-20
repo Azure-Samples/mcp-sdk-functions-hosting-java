@@ -9,9 +9,7 @@
         "description": {
             "defaultExecutablePath": "java",
             "workingDirectory": "",
-            "arguments": ["-Dquarkus.http.port=%FUNCTIONS_CUSTOMHANDLER_PORT%",
-                          "-jar",
-                          "quarkus-mcp-1.0.0-runner.jar"]
+            "arguments": ["-jar", "@runner.jar.name@"]
         },
         "enableForwardingHttpRequest": true,
         "enableHttpProxyingRequest": true

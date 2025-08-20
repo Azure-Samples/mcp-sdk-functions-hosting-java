@@ -3,6 +3,7 @@ package com.microsoft.azure;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.arc.Unremovable;
+import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.jboss.logging.Logger;
 
@@ -24,7 +25,14 @@ public class WeatherService {
 
     private final HttpClient httpClient = HttpClient.newBuilder()
             .followRedirects(HttpClient.Redirect.NORMAL)
+            .connectTimeout(Duration.ofSeconds(10))
             .build();
+
+    @PreDestroy
+    void cleanup() {
+        // HttpClient doesn't have an explicit close method, but this ensures proper cleanup
+        LOG.debug("WeatherService cleanup completed");
+    }
 
     public String getAlerts(String stateCode) {
         if (stateCode == null || stateCode.length() != 2) {

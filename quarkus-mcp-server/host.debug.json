@@ -9,10 +9,8 @@
         "description": {
             "defaultExecutablePath": "java",
             "workingDirectory": "",
-            "arguments": ["-Dquarkus.http.port=%FUNCTIONS_CUSTOMHANDLER_PORT%",
-                          "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005",
-                          "-jar",
-                          "quarkus-mcp-1.0.0-runner.jar"]
+            "arguments": ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005",
+                          "-jar", "@runner.jar.name@"]
         },
         "enableForwardingHttpRequest": true,
         "enableHttpProxyingRequest": true
