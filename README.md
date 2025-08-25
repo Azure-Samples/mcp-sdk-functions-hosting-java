@@ -49,19 +49,49 @@ npm install
 npm test
 ```
 
-## Deploy
+## Deploy (zip deploy)
+
+Build, zip the contents of `target/azure-function` (not the folder itself), then deploy the zip with Azure CLI.
+
+PowerShell:
 
 ```powershell
 # Build (production)
 cd quarkus-mcp-server
 mvn clean package
 
-# Publish to an existing Function App
+# Package: zip the contents of target/azure-function into function-package.zip
+$out = Join-Path (Get-Location) "target/azure-function"
+$zip = Join-Path (Get-Location) "target/function-package.zip"
+if (Test-Path $zip) { Remove-Item $zip }
+Push-Location $out
+Compress-Archive -Path * -DestinationPath $zip
+Pop-Location
+
+# Deploy (replace resource group and app name)
+az functionapp deployment source config-zip `
+  -g <resource-group> -n <function-app-name> `
+  --src $zip
+```
+
+Bash:
+
+```bash
+# Build (production)
+cd quarkus-mcp-server
+mvn clean package
+
+# Package: zip the contents (not the folder)
 cd target/azure-function
-func azure functionapp publish <your-function-app-name>
+zip -r ../function-package.zip ./*
+
+# Deploy (replace resource group and app name)
+az functionapp deployment source config-zip \
+  -g <resource-group> -n <function-app-name> \
+  --src ../function-package.zip
 ```
 
 ## Notes
 
 - HTTP binds to 0.0.0.0 and uses FUNCTIONS_CUSTOMHANDLER_PORT
-- host*.json templates resolve the runner JAR name at package time
+- `host*.json` templates resolve the runner JAR name at package time
