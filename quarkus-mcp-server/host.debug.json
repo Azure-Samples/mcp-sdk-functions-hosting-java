@@ -1,0 +1,18 @@
+{
+    "version": "2.0",
+    "extensions": {
+        "http": {
+            "routePrefix": ""
+        }
+    },
+    "customHandler": {
+        "description": {
+            "defaultExecutablePath": "java",
+            "workingDirectory": "",
+            "arguments": ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005",
+                          "-jar", "@runner.jar.name@"]
+        },
+        "enableForwardingHttpRequest": true,
+        "enableHttpProxyingRequest": true
+    }
+}

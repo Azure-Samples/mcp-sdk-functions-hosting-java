@@ -1,0 +1,13 @@
+{
+  "name": "functions-mcp-java-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node ./run-e2e.mjs"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.3",
+    "zod": "^3.23.8"
+  }
+}

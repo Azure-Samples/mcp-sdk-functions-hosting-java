@@ -1,57 +1,97 @@
-# Project Name
+# MCP on Azure Functions (Java + Quarkus)
 
-(short, 1-3 sentenced, description of the project)
+Minimal sample that hosts a Model Context Protocol (MCP) server built with Java/Quarkus on Azure Functions (custom handler). Includes a weather tool and a tiny e2e test.
 
-## Features
+## What’s here
 
-This project framework provides the following features:
+- `quarkus-mcp-server/`: Quarkus MCP server packaged as an uber‑jar; Azure Functions custom handler wiring
+- `e2e/`: Minimal Node-based end‑to‑end test runner
 
-* Feature 1
-* Feature 2
-* ...
+## Prereqs
 
-## Getting Started
+- Java 17, Maven 3.8+
+- Azure Functions Core Tools v4
+- Node.js 18+ (for e2e)
 
-### Prerequisites
+## Run locally
 
-(ideally very short, if any)
+```powershell
+# Build (production)
+cd quarkus-mcp-server
+mvn clean package
 
-- OS
-- Library version
-- ...
+# OR: Build with debug profile (adds JDWP on 5005)
+mvn clean package -P debug
 
-### Installation
+# Start Functions host
+cd target/azure-function
+func host start
+```
 
-(ideally very short)
+Endpoint:
+- [http://localhost:7071/mcp](http://localhost:7071/mcp) (server)
 
-- npm install [package name]
-- mvn install
-- ...
+## Quick call (PowerShell)
 
-### Quickstart
-(Add steps to get up and running quickly)
+```powershell
+$body = @{
+  jsonrpc = "2.0"; id = 1; method = "tools/call";
+  params = @{ name = "get_alerts"; arguments = @{ state = "CA" } }
+} | ConvertTo-Json -Depth 5
+Invoke-RestMethod -Method Post -Uri http://localhost:7071/mcp -ContentType 'application/json' -Body $body
+```
 
-1. git clone [repository clone url]
-2. cd [repository name]
-3. ...
+## E2E test
 
+```powershell
+cd e2e
+npm install
+npm test
+```
 
-## Demo
+## Deploy (zip deploy)
 
-A demo app is included to show how to use the project.
+Build, zip the contents of `target/azure-function` (not the folder itself), then deploy the zip with Azure CLI.
 
-To run the demo, follow these steps:
+PowerShell:
 
-(Add steps to start up the demo)
+```powershell
+# Build (production)
+cd quarkus-mcp-server
+mvn clean package
 
-1.
-2.
-3.
+# Package: zip the contents of target/azure-function into function-package.zip
+$out = Join-Path (Get-Location) "target/azure-function"
+$zip = Join-Path (Get-Location) "target/function-package.zip"
+if (Test-Path $zip) { Remove-Item $zip }
+Push-Location $out
+Compress-Archive -Path * -DestinationPath $zip
+Pop-Location
 
-## Resources
+# Deploy (replace resource group and app name)
+az functionapp deployment source config-zip `
+  -g <resource-group> -n <function-app-name> `
+  --src $zip
+```
 
-(Any additional resources or related projects)
+Bash:
 
-- Link to supporting information
-- Link to similar sample
-- ...
+```bash
+# Build (production)
+cd quarkus-mcp-server
+mvn clean package
+
+# Package: zip the contents (not the folder)
+cd target/azure-function
+zip -r ../function-package.zip ./*
+
+# Deploy (replace resource group and app name)
+az functionapp deployment source config-zip \
+  -g <resource-group> -n <function-app-name> \
+  --src ../function-package.zip
+```
+
+## Notes
+
+- HTTP binds to 0.0.0.0 and uses FUNCTIONS_CUSTOMHANDLER_PORT
+- `host*.json` templates resolve the runner JAR name at package time
