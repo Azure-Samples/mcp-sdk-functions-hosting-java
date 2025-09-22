@@ -60,35 +60,9 @@ PowerShell:
 cd quarkus-mcp-server
 mvn clean package
 
-# Package: zip the contents of target/azure-function into function-package.zip
-$out = Join-Path (Get-Location) "target/azure-function"
-$zip = Join-Path (Get-Location) "target/function-package.zip"
-if (Test-Path $zip) { Remove-Item $zip }
-Push-Location $out
-Compress-Archive -Path * -DestinationPath $zip
-Pop-Location
-
-# Deploy (replace resource group and app name)
-az functionapp deployment source config-zip `
-  -g <resource-group> -n <function-app-name> `
-  --src $zip
-```
-
-Bash:
-
-```bash
-# Build (production)
-cd quarkus-mcp-server
-mvn clean package
-
-# Package: zip the contents (not the folder)
-cd target/azure-function
-zip -r ../function-package.zip ./*
-
-# Deploy (replace resource group and app name)
-az functionapp deployment source config-zip \
-  -g <resource-group> -n <function-app-name> \
-  --src ../function-package.zip
+# Deploy (run azd up from directory where azure.yaml is located)
+cd ..
+azd up
 ```
 
 ## Notes
