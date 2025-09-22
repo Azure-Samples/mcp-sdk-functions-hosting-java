@@ -7,7 +7,7 @@
     },
     "customHandler": {
         "description": {
-            "defaultExecutablePath": "java",
+            "defaultExecutablePath": "/usr/lib/jvm/msft-17-x64/bin/java",
             "workingDirectory": "",
             "arguments": ["-jar", "@runner.jar.name@"]
         },
