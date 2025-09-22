@@ -118,7 +118,7 @@
               <goal>copy-resources</goal>
             </goals>
             <configuration>
-              <outputDirectory>${project.build.directory}/azure-function</outputDirectory>
+              <outputDirectory>${project.build.directory}/azure-functions/${project.name}</outputDirectory>
               <resources>
                 <!-- copy the whole mcp-handler directory structure -->
                 <resource>
@@ -138,7 +138,7 @@
               <goal>copy-resources</goal>
             </goals>
             <configuration>
-              <outputDirectory>${project.build.directory}/azure-function</outputDirectory>
+              <outputDirectory>${project.build.directory}/azure-functions/${project.name}</outputDirectory>
               <resources>
                 <resource>
                   <directory>${project.build.directory}</directory>
@@ -168,7 +168,7 @@
               <target>
                 <!-- Use filterset to replace Maven properties in host file -->
                 <copy file="${project.basedir}/${host.file}" 
-                      tofile="${project.build.directory}/azure-function/host.json">
+                      tofile="${project.build.directory}/azure-functions/${project.name}/host.json">
                   <filterset>
                     <filter token="runner.jar.name" value="${runner.jar.name}"/>
                   </filterset>
@@ -217,7 +217,7 @@
                   <goal>copy-resources</goal>
                 </goals>
                 <configuration>
-                  <outputDirectory>${project.build.directory}/azure-function</outputDirectory>
+                  <outputDirectory>${project.build.directory}/azure-functions/${project.name}</outputDirectory>
                   <resources>
                     <resource>
                       <directory>${project.basedir}</directory>
