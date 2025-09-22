@@ -18,9 +18,9 @@ Minimal sample that hosts a Model Context Protocol (MCP) server built with Java/
 ```powershell
 # Build (production)
 cd quarkus-mcp-server
-mvn clean package
 
-# OR: Build with debug profile (adds JDWP on 5005)
+# Build with debug profile (adds JDWP on 5005) 
+# and cpoies the local.settings.json to build folder
 mvn clean package -P debug
 
 # Start Functions host
