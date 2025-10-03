@@ -24,7 +24,7 @@ cd quarkus-mcp-server
 mvn clean package -P debug
 
 # Start Functions host
-cd target/azure-function
+cd target/azure-functions/quarkus-mcp
 func host start
 ```
 
@@ -51,7 +51,7 @@ npm test
 
 ## Deploy (zip deploy)
 
-Build, zip the contents of `target/azure-function` (not the folder itself), then deploy the zip with Azure CLI.
+Build, zip the contents of `target/azure-functions/quarkus-mcp` (not the folder itself), then deploy the zip with Azure CLI.
 
 PowerShell:
 

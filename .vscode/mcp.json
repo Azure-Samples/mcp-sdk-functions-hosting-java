@@ -1,0 +1,9 @@
+{
+	"servers": {
+		"weather-server": {
+			"url": "https://func-api-yt754zdsi5jme.azurewebsites.net/mcp",
+			"type": "http"
+		}
+	},
+	"inputs": []
+}
