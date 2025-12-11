@@ -25,7 +25,7 @@ mvn clean package -P debug
 
 # Start Functions host
 cd target/azure-functions/quarkus-mcp
-func host start
+func start
 ```
 
 Endpoint:
