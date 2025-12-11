@@ -418,7 +418,6 @@ FodyWeavers.xsd
 *.msp
 
 # Azure Functions
-# local.settings.json
 bin/
 obj/
 
