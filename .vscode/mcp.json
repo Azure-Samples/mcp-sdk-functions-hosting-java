@@ -1,0 +1,19 @@
+{
+	"servers": {
+        "local-mcp-server": {
+            "url": "http://localhost:7071/mcp",
+			"type": "http"
+        },
+        "remote-mcp-server": {
+            "type": "http",
+            "url": "https://${input:functionapp-name}.azurewebsites.net/mcp",
+        }
+    },
+    "inputs": [
+        {
+            "type": "promptString",
+            "id": "functionapp-name",
+            "description": "The name of the function app."
+        }
+    ]
+}

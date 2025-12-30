@@ -416,3 +416,11 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Azure Functions
+bin/
+obj/
+
+# Build output
+target/
+*.class

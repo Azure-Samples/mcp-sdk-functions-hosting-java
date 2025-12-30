@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: java-mcp-sdk-functions-azd
+metadata:
+  template: java-mcp-sdk-functions-azd@1.0.0
+services:
+  mcp:
+    project: ./quarkus-mcp-server/
+    language: java
+    host: function
