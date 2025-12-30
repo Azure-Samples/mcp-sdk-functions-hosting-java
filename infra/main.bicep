@@ -48,7 +48,7 @@ param environmentName string
 })
 param location string
 param vnetEnabled bool
-param apiServiceName string = ''
+param mcpServiceName string = ''
 param apiUserAssignedIdentityName string = ''
 param applicationInsightsName string = ''
 param appServicePlanName string = ''
@@ -59,10 +59,23 @@ param vNetName string = ''
 @description('Id of the user identity to be used for testing and debugging. This is not required in production. Leave empty if not needed.')
 param principalId string = deployer().objectId
 
+// Authentication parameters
+@description('References application or service contact information from a Service or Asset Management database')
+param serviceManagementReference string = ''
+
+@description('Comma-separated list of client application IDs to pre-authorize for accessing the MCP API (optional)')
+param preAuthorizedClientIds string = ''
+
+@description('OAuth2 delegated permissions for App Service Authentication login flow')
+param delegatedPermissions array = ['User.Read']
+
+@description('Token exchange audience for sovereign cloud deployments (optional)')
+param tokenExchangeAudience string = ''
+
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 var tags = { 'azd-env-name': environmentName }
-var functionAppName = !empty(apiServiceName) ? apiServiceName : '${abbrs.webSitesFunctions}api-${resourceToken}'
+var functionAppName = !empty(mcpServiceName) ? mcpServiceName : '${abbrs.webSitesFunctions}mcp-${resourceToken}'
 var deploymentStorageContainerName = 'app-package-${take(functionAppName, 32)}-${take(toLower(uniqueString(functionAppName, resourceToken)), 7)}'
 
 // Organize resources in a resource group
@@ -74,13 +87,32 @@ resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
 
 // User assigned managed identity to be used by the function app to reach storage and other dependencies
 // Assign specific roles to this identity in the RBAC module
-module apiUserAssignedIdentity 'br/public:avm/res/managed-identity/user-assigned-identity:0.4.1' = {
-  name: 'apiUserAssignedIdentity'
+module mcpUserAssignedIdentity 'br/public:avm/res/managed-identity/user-assigned-identity:0.4.1' = {
+  name: 'mcpUserAssignedIdentity'
   scope: rg
   params: {
     location: location
     tags: tags
-    name: !empty(apiUserAssignedIdentityName) ? apiUserAssignedIdentityName : '${abbrs.managedIdentityUserAssignedIdentities}api-${resourceToken}'
+    name: !empty(apiUserAssignedIdentityName) ? apiUserAssignedIdentityName : '${abbrs.managedIdentityUserAssignedIdentities}mcp-${resourceToken}'
+  }
+}
+
+// Convert comma-separated string to array for pre-authorized client IDs
+var preAuthorizedClientIdsArray = !empty(preAuthorizedClientIds) ? map(split(preAuthorizedClientIds, ','), clientId => trim(clientId)) : []
+
+// Create Entra app registration for authentication (only when pre-authorized client IDs are provided)
+module entraApp './app/entra.bicep' = {
+  name: 'entraApp'
+  scope: rg
+  params: {
+    appUniqueName: '${functionAppName}-app'
+    appDisplayName: 'MCP Authorization App (${functionAppName})'
+    serviceManagementReference: serviceManagementReference
+    functionAppHostname: '${functionAppName}.azurewebsites.net'
+    preAuthorizedClientIds: preAuthorizedClientIdsArray
+    managedIdentityClientId: mcpUserAssignedIdentity.outputs.clientId
+    managedIdentityPrincipalId: mcpUserAssignedIdentity.outputs.principalId
+    tags: tags
   }
 }
 
@@ -100,8 +132,8 @@ module appServicePlan 'br/public:avm/res/web/serverfarm:0.1.1' = {
   }
 }
 
-module api './app/api.bicep' = {
-  name: 'api'
+module mcp './app/mcp.bicep' = {
+  name: 'mcp'
   scope: rg
   params: {
     name: functionAppName
@@ -116,11 +148,20 @@ module api './app/api.bicep' = {
     enableQueue: storageEndpointConfig.enableQueue
     enableTable: storageEndpointConfig.enableTable
     deploymentStorageContainerName: deploymentStorageContainerName
-    identityId: apiUserAssignedIdentity.outputs.resourceId
-    identityClientId: apiUserAssignedIdentity.outputs.clientId
+    identityId: mcpUserAssignedIdentity.outputs.resourceId
+    identityClientId: mcpUserAssignedIdentity.outputs.clientId
+    preAuthorizedClientIds: preAuthorizedClientIdsArray
     appSettings: {
+       AzureWebJobsFeatureFlags: 'EnableMcpCustomHandlerPreview'
     }
     virtualNetworkSubnetId: vnetEnabled ? serviceVirtualNetwork.outputs.appSubnetID : ''
+    // Authentication parameters (only pass when entra app is created)
+    authClientId: entraApp.outputs.applicationId 
+    authIdentifierUri: entraApp.outputs.identifierUri
+    authExposedScopes: entraApp.outputs.exposedScopes
+    authTenantId: tenant().tenantId
+    delegatedPermissions: delegatedPermissions
+    tokenExchangeAudience: tokenExchangeAudience
   }
 }
 
@@ -166,7 +207,7 @@ module rbac 'app/rbac.bicep' = {
   params: {
     storageAccountName: storage.outputs.name
     appInsightsName: monitoring.outputs.name
-    managedIdentityPrincipalId: apiUserAssignedIdentity.outputs.principalId
+    managedIdentityPrincipalId: mcpUserAssignedIdentity.outputs.principalId
     userIdentityPrincipalId: principalId
     enableBlob: storageEndpointConfig.enableBlob
     enableQueue: storageEndpointConfig.enableQueue
@@ -229,5 +270,23 @@ module monitoring 'br/public:avm/res/insights/component:0.6.0' = {
 output APPLICATIONINSIGHTS_CONNECTION_STRING string = monitoring.outputs.connectionString
 output AZURE_LOCATION string = location
 output AZURE_TENANT_ID string = tenant().tenantId
-output SERVICE_API_NAME string = api.outputs.SERVICE_API_NAME
-output AZURE_FUNCTION_NAME string = api.outputs.SERVICE_API_NAME
+output SERVICE_MCP_NAME string = mcp.outputs.SERVICE_MCP_NAME
+output SERVICE_MCP_DEFAULT_HOSTNAME string = mcp.outputs.SERVICE_MCP_DEFAULT_HOSTNAME
+output AZURE_FUNCTION_NAME string = mcp.outputs.SERVICE_MCP_NAME
+
+// Entra App outputs (using the initial app for core properties)
+output ENTRA_APPLICATION_ID string = entraApp.outputs.applicationId
+output ENTRA_APPLICATION_OBJECT_ID string = entraApp.outputs.applicationObjectId
+output ENTRA_SERVICE_PRINCIPAL_ID string = entraApp.outputs.servicePrincipalId
+output ENTRA_IDENTIFIER_URI string = entraApp.outputs.identifierUri
+
+// Authorization outputs
+output AUTH_ENABLED bool = mcp.outputs.AUTH_ENABLED
+output CONFIGURED_SCOPES string = mcp.outputs.CONFIGURED_SCOPES
+
+// Pre-authorized applications
+output PRE_AUTHORIZED_CLIENT_IDS string = preAuthorizedClientIds
+
+// Entra App redirect URI outputs (using predictable hostname)
+output CONFIGURED_REDIRECT_URIS array = entraApp.outputs.configuredRedirectUris
+output AUTH_REDIRECT_URI string = entraApp.outputs.authRedirectUri

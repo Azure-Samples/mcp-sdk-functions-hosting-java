@@ -4,7 +4,7 @@ name: starter-java-flex-func
 metadata:
   template: functions-quickstart-java-azd@1.0.1
 services:
-  api:
+  mcp:
     project: ./quarkus-mcp-server/
     language: java
     host: function

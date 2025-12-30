@@ -1,16 +1,15 @@
 {
     "version": "2.0",
-    "extensions": {
-        "http": {
-            "routePrefix": ""
-        }
-    },
+    "configurationProfile": "mcp-custom-handler",
     "customHandler": {
         "description": {
             "defaultExecutablePath": "java",
             "arguments": ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005",
                           "-jar", "@runner.jar.name@"]
+        }, 
+        "http": {
+            "DefaultAuthorizationLevel": "anonymous"
         },
-        "enableProxyingHttpRequest": true
+        "port": "8080"
     }
 }

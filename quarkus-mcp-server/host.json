@@ -1,16 +1,15 @@
 {
     "version": "2.0",
-    "extensions": {
-        "http": {
-            "routePrefix": ""
-        }
-    },
+    "configurationProfile": "mcp-custom-handler",
     "customHandler": {
         "description": {
             "defaultExecutablePath": "/usr/lib/jvm/msft-17-x64/bin/java",
             "workingDirectory": "",
             "arguments": ["-jar", "@runner.jar.name@"]
         },
-        "enableProxyingHttpRequest": true
+        "http": {
+            "DefaultAuthorizationLevel": "anonymous"
+        },
+        "port": "8080"
     }
 }
